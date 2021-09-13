@@ -6,9 +6,11 @@ import classes from './MainNavigation.module.css';
 const MainNavigation = () => {
 
   const { isLoggedIn, logOut } = useContext(AuthContext);
-  console.log("token", isLoggedIn)
+
+
   const logOutHandler = () => {
     logOut()
+    localStorage.removeItem('token')
   }
   return (
     <header className={classes.header}>

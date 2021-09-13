@@ -1,8 +1,11 @@
 import { useState, useRef, useContext } from "react";
+import {useHistory} from "react-router-dom" 
 import AuthContext from '../../contextStore/auth-context'
 import classes from "./AuthForm.module.css";
 
 const AuthForm = () => {
+
+  const history = useHistory()
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -10,8 +13,7 @@ const AuthForm = () => {
   const emailRef = useRef();
   const authCtx = useContext(AuthContext)
 
-
-
+  console.log("authCtxState", authCtx.token)
 
   const switchAuthModeHandler = () => {
     setIsLogin((prevState) => !prevState);
@@ -31,7 +33,7 @@ const AuthForm = () => {
 
     if (isLogin) {
       setIsLoading(true);
-      console.log(process.env.REACT_APP_FIREBASE_SIGN_IN_URL)
+     
       
       const signIn = async () => {
         const request = await fetch(
@@ -44,13 +46,17 @@ const AuthForm = () => {
         );
 
         const response = await request.json();
-
+         
         if (!request.ok) {
           throw new Error(response.error.message);
         }
-        authCtx.logIn(response.idToken)
-        console.log(response);
-        setIsLoading(false);
+
+        const expirationTime = new Date(new Date().getTime() + (+response.expiresIn * 1000))
+
+      
+        authCtx.logIn(response.idToken, expirationTime.toISOString())
+      
+
       };
 
       if (enteredEmail.length > 4 && enteredPassword.length > 4) {
@@ -58,8 +64,11 @@ const AuthForm = () => {
           alert(error);
           setIsLoading(false);
         });
+        setIsLoading(false);
+        history.replace('/')
       }
-      setIsLoading(false);
+   
+ 
     }
 
     if (!isLogin) {
@@ -86,6 +95,7 @@ const AuthForm = () => {
         signUp().catch((err) => {
           alert(err);
           setIsLoading(false);
+          history.replace('/')
         });
       }
       setIsLoading(false);
@@ -102,7 +112,7 @@ const AuthForm = () => {
         </div>
         <div className={classes.control}>
           <label htmlFor="password">Your Password</label>
-          <input type="password" id="password" required ref={passRef} />
+          <input type="password" id="password" minLength="7" required ref={passRef} />
         </div>
         <div className={classes.actions}>
           {!isLoading && (
