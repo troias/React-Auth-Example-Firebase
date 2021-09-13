@@ -26,14 +26,17 @@ const AuthForm = () => {
     };
 
     if (isLogin) {
+      // {process.env.FIREBASE_API}
+      console.log(process.env.REACT_APP_FIREBASE_API)
+      console.log("click")
     }
 
     if (!isLogin) {
       const signUp = async () => {
         setIsLoading(true);
-
+        console.log("process.env.FIREBASE_API", process.env.REACT_APP_FIREBASE_API)
         const response = await fetch(
-          `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.FIREBASE_API}`,
+          `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.REACT_APP_FIREBASE_API}`,
           {
             method: "POST",
             body: JSON.stringify(enteredData),
