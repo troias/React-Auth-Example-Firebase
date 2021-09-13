@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-
+import { useState, useRef, useContext } from "react";
+import AuthContext from '../../contextStore/auth-context'
 import classes from "./AuthForm.module.css";
 
 const AuthForm = () => {
@@ -8,6 +8,10 @@ const AuthForm = () => {
 
   const passRef = useRef();
   const emailRef = useRef();
+  const authCtx = useContext(AuthContext)
+
+
+
 
   const switchAuthModeHandler = () => {
     setIsLogin((prevState) => !prevState);
@@ -26,17 +30,43 @@ const AuthForm = () => {
     };
 
     if (isLogin) {
-      // {process.env.FIREBASE_API}
-      console.log(process.env.REACT_APP_FIREBASE_API)
-      console.log("click")
+      setIsLoading(true);
+      console.log(process.env.REACT_APP_FIREBASE_SIGN_IN_URL)
+      
+      const signIn = async () => {
+        const request = await fetch(
+          `${process.env.REACT_APP_FIREBASE_SIGN_IN_URL}${process.env.REACT_APP_FIREBASE_API}`,
+          {
+            method: "POST",
+            body: JSON.stringify(enteredData),
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        const response = await request.json();
+
+        if (!request.ok) {
+          throw new Error(response.error.message);
+        }
+        authCtx.logIn(response.idToken)
+        console.log(response);
+        setIsLoading(false);
+      };
+
+      if (enteredEmail.length > 4 && enteredPassword.length > 4) {
+        signIn().catch((error) => {
+          alert(error);
+          setIsLoading(false);
+        });
+      }
+      setIsLoading(false);
     }
 
     if (!isLogin) {
       const signUp = async () => {
         setIsLoading(true);
-        console.log("process.env.FIREBASE_API", process.env.REACT_APP_FIREBASE_API)
         const response = await fetch(
-          `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.REACT_APP_FIREBASE_API}`,
+          `${process.env.REACT_APP_FIREBASE_SIGN_UP_URL}${process.env.REACT_APP_FIREBASE_API}`,
           {
             method: "POST",
             body: JSON.stringify(enteredData),
@@ -58,6 +88,7 @@ const AuthForm = () => {
           setIsLoading(false);
         });
       }
+      setIsLoading(false);
     }
   };
 
