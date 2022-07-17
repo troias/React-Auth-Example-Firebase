@@ -44,7 +44,9 @@ export const AuthContextProvider = (props) => {
 
   const [token, setToken] = useState(intialToken)
 
-  const userIsLoggedIn = !token
+  //   console.log("token", token)
+
+  let userIsLoggedIn = token
 
   const logoutHandler = useCallback(() => {
     setToken(null)
@@ -55,19 +57,29 @@ export const AuthContextProvider = (props) => {
     }
   }, [])
 
-  const loginHandler = (token, expirationTime) => {
-    setToken(token)
-    localStorage.setItem("token", token)
-    localStorage.setItem("expirationTime", expirationTime)
-    const remainingTime = calcRemainingTime(expirationTime)
+  const loginHandler = useCallback(
+    (token, expirationTime) => {
+      setToken(token)
+      localStorage.setItem("token", token)
+      localStorage.setItem("expirationTime", expirationTime)
+      const remainingTime = calcRemainingTime(expirationTime)
 
-    logoutTimer = setTimeout(logoutHandler, remainingTime)
-  }
+      logoutTimer = setTimeout(logoutHandler, remainingTime)
+    },
+    [logoutHandler]
+  )
 
   useEffect(() => {
+    if (!tokenData) {
+      userIsLoggedIn = false
+      logoutHandler()
+    }
+
     if (tokenData) {
+      loginHandler(tokenData.token, tokenData.remainingTime)
       logoutTimer = setTimeout(logoutHandler, tokenData.remainingTime)
     }
+
     return () => {}
   }, [logoutHandler, tokenData])
 
@@ -79,6 +91,9 @@ export const AuthContextProvider = (props) => {
     logIn: loginHandler,
     logOut: logoutHandler,
   }
+
+  console.log("authContextState", contextValue)
+
   return (
     <AuthContext.Provider value={contextValue}>
       {props.children}
