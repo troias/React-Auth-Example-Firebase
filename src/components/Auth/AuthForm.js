@@ -1,40 +1,38 @@
-import { useState, useRef, useContext } from "react";
-import {useHistory} from "react-router-dom" 
-import AuthContext from '../../contextStore/auth-context'
-import classes from "./AuthForm.module.css";
+import { useState, useRef, useContext } from "react"
+import { useHistory } from "react-router-dom"
+import AuthContext from "../../contextStore/auth-context"
+import classes from "./AuthForm.module.css"
 
 const AuthForm = () => {
-
   const history = useHistory()
-  const [isLogin, setIsLogin] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLogin, setIsLogin] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const passRef = useRef();
-  const emailRef = useRef();
+  const passRef = useRef()
+  const emailRef = useRef()
   const authCtx = useContext(AuthContext)
 
   console.log("authCtxState", authCtx.token)
 
   const switchAuthModeHandler = () => {
-    setIsLogin((prevState) => !prevState);
-  };
+    setIsLogin((prevState) => !prevState)
+  }
 
   const submitHandler = (event) => {
-    event.preventDefault();
+    event.preventDefault()
 
-    const enteredEmail = emailRef.current.value;
-    const enteredPassword = passRef.current.value;
+    const enteredEmail = emailRef.current.value
+    const enteredPassword = passRef.current.value
 
     const enteredData = {
       email: enteredEmail,
       password: enteredPassword,
       returnSecureToken: true,
-    };
+    }
 
     if (isLogin) {
-      setIsLoading(true);
-     
-      
+      setIsLoading(true)
+
       const signIn = async () => {
         const request = await fetch(
           `${process.env.REACT_APP_FIREBASE_SIGN_IN_URL}${process.env.REACT_APP_FIREBASE_API}`,
@@ -43,37 +41,36 @@ const AuthForm = () => {
             body: JSON.stringify(enteredData),
             headers: { "Content-Type": "application/json" },
           }
-        );
+        )
 
-        const response = await request.json();
-         
+        const response = await request.json()
+
+        console.log("response", response)
+
         if (!request.ok) {
-          throw new Error(response.error.message);
+          throw new Error(response.error.message)
         }
 
-        const expirationTime = new Date(new Date().getTime() + (+response.expiresIn * 1000))
+        const expirationTime = new Date(
+          new Date().getTime() + +response.expiresIn * 1000
+        )
 
-      
         authCtx.logIn(response.idToken, expirationTime.toISOString())
-      
-
-      };
+      }
 
       if (enteredEmail.length > 4 && enteredPassword.length > 4) {
         signIn().catch((error) => {
-          alert(error);
-          setIsLoading(false);
-        });
-        setIsLoading(false);
-        history.replace('/')
+          alert(error)
+          setIsLoading(false)
+        })
+        setIsLoading(false)
+        history.replace("/")
       }
-   
- 
     }
 
     if (!isLogin) {
       const signUp = async () => {
-        setIsLoading(true);
+        setIsLoading(true)
         const response = await fetch(
           `${process.env.REACT_APP_FIREBASE_SIGN_UP_URL}${process.env.REACT_APP_FIREBASE_API}`,
           {
@@ -81,26 +78,26 @@ const AuthForm = () => {
             body: JSON.stringify(enteredData),
             headers: { "Content-Type": "application/json" },
           }
-        );
-        const data = await response.json();
+        )
+        const data = await response.json()
 
         if (!response.ok) {
-          throw new Error(data.error.message || "could not authenticate");
+          throw new Error(data.error.message || "could not authenticate")
         }
 
-        setIsLoading(false);
-        return data;
-      };
+        setIsLoading(false)
+        return data
+      }
       if (enteredEmail.length > 4 && enteredPassword.length > 4) {
         signUp().catch((err) => {
-          alert(err);
-          setIsLoading(false);
-          history.replace('/')
-        });
+          alert(err)
+          setIsLoading(false)
+          history.replace("/")
+        })
       }
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <section className={classes.auth}>
@@ -112,7 +109,13 @@ const AuthForm = () => {
         </div>
         <div className={classes.control}>
           <label htmlFor="password">Your Password</label>
-          <input type="password" id="password" minLength="7" required ref={passRef} />
+          <input
+            type="password"
+            id="password"
+            minLength="7"
+            required
+            ref={passRef}
+          />
         </div>
         <div className={classes.actions}>
           {!isLoading && (
@@ -129,7 +132,7 @@ const AuthForm = () => {
         </div>
       </form>
     </section>
-  );
-};
+  )
+}
 
-export default AuthForm;
+export default AuthForm
